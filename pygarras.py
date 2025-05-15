@@ -18,7 +18,7 @@ COL_YELLOW = (255, 255, 0)
 
 # settings
 
-window_dimensions = (2560, 1440)  # in pixels
+window_dimensions = (1280, 720)  # in pixels
 frames_per_second = 120
 
 # Parameters
@@ -34,7 +34,7 @@ pygame.init()
 window = pygame.display.set_mode(window_dimensions)
 pygame.display.set_caption("pygarras")
 horloge = pygame.time.Clock()
-pygame.key.set_repeat(500, 50) 
+pygame.key.set_repeat(50, 50) 
 
 # defs
 
@@ -58,6 +58,8 @@ class Entity:
         self.vy = 0.0
         self.ax = 0.0
         self.ay = 0.0
+        self.accel = 0.95
+        self.speed = 1
         self.col = col
         self.health = health
         self.max_health = health
@@ -171,14 +173,14 @@ def draw_guns(entity):
 def move_entities(delta_t):
     for entity in entities:
         if entity.alive:
-            entity.x += entity.vx * delta_t
-            entity.y += entity.vy * delta_t
+            entity.x += (entity.vx * entity.speed) * delta_t
+            entity.y += (entity.vy * entity.speed) * delta_t
 
             entity.vx += entity.ax * delta_t
             entity.vy += entity.ay  * delta_t
 
-            entity.vx *= 0.95
-            entity.vy *= 0.95
+            entity.vx *= entity.accel
+            entity.vy *= entity.accel
 
             # Add collision detection and other logic here
 
@@ -216,6 +218,8 @@ def draw_hp_bar(entity):
 
 
 player = Entity(initial_position[0], initial_position[1], 20, 0, COL_BLUE, 100)
+player.accel = 0.95
+player.speed = 1
 player.guns.append(Gun(32, 8, 1, 0, 0, 0, COL_GREY))
 player.guns.append(Gun(5, 8, -1.4, 8, 0, 0, COL_GREY))
 entities.append(player)
@@ -233,7 +237,7 @@ while True:
         if entity.alive:
             draw_entity(entity)
             #entity.size += 0.1
-            entity.spin(random.uniform(0,.8))
+            entity.spin(random.uniform(0,.1))
             #player.guns[0].aspect += 0.01
             player.angle = math.atan2(pygame.mouse.get_pos()[1] - player.y , pygame.mouse.get_pos()[0] - player.x)
             # Update entity position based on speed and angle
