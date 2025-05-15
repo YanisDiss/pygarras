@@ -26,7 +26,7 @@ COL_DARK_GREEN = (43, 186, 93)
 
 window_dimensions = (1280, 720)  # in pixels
 arena_dimensions = (2000, 2000) # also in pixels
-frames_per_second = 45
+frames_per_second = 60
 
 # Parameters
 
@@ -303,16 +303,16 @@ def update_movement_state(down):
     global player_move_right
     global player_move_left
     
-    if event.key == pygame.K_a:
+    if event.key == pygame.K_a or event.key == pygame.K_LEFT:
         player_move_left = down
         
-    if event.key == pygame.K_d:
+    if event.key == pygame.K_d or event.key == pygame.K_RIGHT:
         player_move_right = down
         
-    if event.key == pygame.K_w:
+    if event.key == pygame.K_w or event.key == pygame.K_UP:
         player_move_up = down
         
-    if event.key == pygame.K_s:
+    if event.key == pygame.K_s or event.key == pygame.K_DOWN:
         player_move_down = down
         
 def update_mouse_state(down):
