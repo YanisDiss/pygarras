@@ -86,7 +86,7 @@ class Gun:
         self.auto_shoot = auto_shoot
     
     def animate(self):
-        self.length_recoil *= 0.85
+        self.length_recoil *= 0.9
         if self.auto_shoot:
             self.shoot()
     
@@ -96,7 +96,7 @@ class Gun:
             
             if self.tick >= self.fire_rate:
                 self.tick = 0
-                self.length_recoil = self.length / 2 * self.master.size/20
+                self.length_recoil = self.length / 2 * self.master.size/40
                 
                 spawn_x = self.master.x + self.x + math.cos(self.master.angle + self.angle) * (self.length * 2 * self.master.size/20)
                 spawn_y = self.master.y + self.y + math.sin(self.master.angle + self.angle) * (self.length * 2 * self.master.size/20)
@@ -237,7 +237,7 @@ class Entity:
                 self.kill()
             
         else:
-            self.size -= self.size / 10
+            self.size -= self.size / 100 * delta_t
             
             if self.size <= 2:
                 self.render = 0
