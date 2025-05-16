@@ -17,7 +17,7 @@ COL_GREEN = (87, 255, 87)
 COL_BLUE = (0, 180, 225)
 COL_YELLOW = (255, 255, 0)
 COL_PURPLE = (105, 43, 255)
-COL_ORANGE = (255, 129, 27)
+COL_ORANGE = (255, 129, 77)
 COL_PINK = (199, 38, 128)
 COL_LAVENDER = (150, 94, 199)
 COL_DARK_GREEN = (43, 186, 93)
@@ -35,13 +35,21 @@ initial_orientation = 0
 entities = []
 stroke_width = 3
 
+# ui stuff
+ui_stroke_width = 3
+ui_offset = 10
+ui_minimap_size = 150
+
+
 # Initialization
 
 pygame.init()
+pygame
 window = pygame.display.set_mode(window_dimensions)
 pygame.display.set_caption("pygarras")
 horloge = pygame.time.Clock()
 pygame.key.set_repeat(50, 50)
+large_font = pygame.font.Font("assets/fonts/Ubuntu-Bold.ttf", 20)
 
 # defs
 camera_x = arena_dimensions[0] / 2
@@ -148,6 +156,7 @@ class Entity:
         self.render = 1
         self.die_animation_tick = 0
         self.is_visible = 0
+        self.draw_on_minimap = False
         tick_entity_id()
     
     def step(self, delta_t):
@@ -185,6 +194,9 @@ class Entity:
                 if player_mouse_left == 1:
                     for gun in self.guns:
                         gun.shoot()
+
+                if self.type == "tank":
+                    self.draw_on_minimap = True
 
             # Add collision detection and other logic here
             for other in entities:
@@ -353,6 +365,16 @@ def manage_inputs(input_type, down):
                 if entity.alive and entity.guns == [] and is_targeted(entity, get_world_mouse()):
                     for i in range(abs(entity.shape)) :
                         entity.guns.append(Gun(entity, 12, 8, 1, 0, 0, (360 / abs(entity.shape)) * i - (360 / abs(entity.shape)) / 2, COL_GREY, 1, 1, 50, i * (1 / abs(entity.shape)), 0.04, 0.35))
+
+        if event.key == pygame.K_h:
+            for entity in entities[:]:
+                if entity.alive and is_targeted(entity, get_world_mouse()):
+                    entity.change_health(entity.max_health / 10)
+
+        if event.key == pygame.K_m:
+            for entity in entities[:]:
+                if entity.alive and entity.type != "tank" and entity.type != "bullet":
+                    entity.draw_on_minimap = not entity.draw_on_minimap
     
     if input_type == "mouse":
         update_mouse_state(down)
@@ -476,6 +498,26 @@ def draw_hp_bar(entity):
         pygame.draw.rect(window, COL_BLACK, (render_x - entity.size - outline_width / 2, render_y + entity.size + 10 - outline_width / 2, (entity.size * 2 + outline_width), bar_width + outline_width ), 0, 10)
         pygame.draw.rect(window, COL_GREEN, (render_x - entity.size                    , render_y + entity.size + 10                    , (entity.size * 2 * (entity.old_health_percentage)), bar_width), 0, 10)
 
+
+def draw_minimap():
+    transparent = pygame.Surface(window_dimensions, pygame.SRCALPHA)
+    pygame.draw.rect(transparent, (*COL_BACKGROUND, 128), ((window_dimensions[0]-ui_minimap_size-ui_offset, window_dimensions[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)))
+    window.blit(transparent, (0, 0))
+    pygame.draw.rect(window, COL_BLACK, ((window_dimensions[0]-ui_minimap_size-ui_offset, window_dimensions[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)), ui_stroke_width)
+
+    # pygarras.io text
+    text = large_font.render("pygarras.io", True, COL_BLACK)
+    window.blit(text, (window_dimensions[0]-ui_minimap_size-ui_offset + 40, window_dimensions[1]-ui_minimap_size-ui_offset - 30))
+
+
+def draw_minimap_point(entity, col=None):
+    point_radius = 2
+    color = entity.col if col is None else col
+    render_x = (window_dimensions[0] - ui_minimap_size - ui_offset) + (entity.x / arena_dimensions[0]) * ui_minimap_size
+    render_y = (window_dimensions[1] - ui_minimap_size - ui_offset) + (entity.y / arena_dimensions[1]) * ui_minimap_size
+    
+    pygame.draw.circle(window, color, (int(render_x), int(render_y)), point_radius, 0)
+
 """
 player = Entity(initial_position[0], initial_position[1], 20, 0, COL_BLUE, 100, "tank")
 player.guns.append(Gun(player, 32, 8, 1, 0, 0, 0, COL_GREY, 1))
@@ -521,7 +563,12 @@ while True:
             draw_hp_bar(entity)
 
     #draw the actual ui
-    ...
+    draw_minimap()
+    for entity in entities:
+        if entity.render and entity.draw_on_minimap:
+            if entity.type == "tank":
+                draw_minimap_point(entity, COL_BLACK)
+            else: draw_minimap_point(entity)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
