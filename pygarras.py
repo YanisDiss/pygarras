@@ -16,6 +16,7 @@ COL_RED = (255, 48, 48)
 COL_GREEN = (87, 255, 87)
 COL_BLUE = (0, 180, 225)
 COL_YELLOW = (255, 255, 0)
+COL_VANILLA = (255, 255, 127)
 COL_PURPLE = (105, 43, 255)
 COL_ORANGE = (255, 129, 77)
 COL_PINK = (199, 38, 128)
@@ -157,6 +158,8 @@ class Entity:
         self.die_animation_tick = 0
         self.is_visible = 0
         self.draw_on_minimap = False
+        self.injured = 0
+        self.injured_tick = 0
         tick_entity_id()
     
     def step(self, delta_t):
@@ -220,6 +223,9 @@ class Entity:
             if self.type != "bullet":
                 self.vx *= 0.95
                 self.vy *= 0.95
+            else: 
+                self.vx *= 0.99
+                self.vy *= 0.99
             
             self.x += self.vx * delta_t
             self.y += self.vy * delta_t
@@ -255,6 +261,12 @@ class Entity:
                 self.render = 0
                 entities.remove(self)
 
+        if self.injured == 1:
+            self.injured = 0
+            self.injured_tick ^= 1 # toggle btween 0 and 1
+        else:
+            self.injured_tick = 0
+
         render_x = entity.x - camera_x + window_dimensions[0] / 2
         render_y = entity.y - camera_y + window_dimensions[1] / 2
         entity.is_visible = 1
@@ -267,13 +279,14 @@ class Entity:
             self.kill()
         if (self.health >= self.max_health):
             self.health = self.max_health
-    
+        if amount < 0:
+            self.injured = 1
     def kill(self):
         self.alive = False
         self.health = 0
 
 def is_targeted(entity, mouse_pos):
-    difference = math.sqrt((entity.x - mouse_pos[0]) ** 2 + (entity.y - mouse_pos[1]) ** 2)
+    difference = math.hypot((entity.x - mouse_pos[0]), (entity.y - mouse_pos[1]))
     return difference < entity.size
 
 def spawn_food(type, x, y):
@@ -397,7 +410,9 @@ def draw_guns(entity):
         angle = entity.angle + gun.angle
         length = (gun.length * 2 * entity.size/20 - gun.length_recoil) / camera_fov
         width = (gun.width * entity.size/20) / camera_fov
-        darker = (gun.col[0] // 2, gun.col[1] // 2, gun.col[2] // 2)
+        lighter = (min(gun.col[0] + 50, 255), min(gun.col[1] + 50, 255), min(gun.col[2] + 50, 255))
+        color = lighter if entity.injured == 1 and entity.injured_tick == 1 else gun.col
+        darker = (color[0] // 2, color[1] // 2, color[2] // 2)
 
         aspect = gun.aspect if gun.aspect > 1 else gun.aspect if 0<gun.aspect<=1 else 1
         aspect2 = abs(gun.aspect) if gun.aspect < -1 else abs(gun.aspect) if -1<gun.aspect<=0 else 1
@@ -425,20 +440,20 @@ def draw_guns(entity):
         for p in polygon:
             pygame.draw.circle(window, darker, (int(p[0]), int(p[1])), stroke_width / camera_fov)
             pygame.draw.polygon(window, darker, polygon, int(stroke_width*2 / camera_fov))
-            pygame.draw.polygon(window, gun.col, polygon)
-
+            pygame.draw.polygon(window, color, polygon)
 
 def draw_entity(entity):
     render_x = (entity.x - camera_x + (window_dimensions[0] * camera_fov) / 2) / camera_fov
     render_y = (entity.y - camera_y + (window_dimensions[1] * camera_fov) / 2) / camera_fov
     render_size = entity.size / camera_fov
+    lighter = (min(entity.col[0] + 50, 255), min(entity.col[1] + 50, 255), min(entity.col[2] + 50, 255))
+    color = lighter if entity.injured == 1 and entity.injured_tick == 1 else entity.col
+    darker = (color[0] // 2, color[1] // 2, color[2] // 2)
 
     if entity.guns != []: draw_guns(entity)
-    darker = (entity.col[0] // 2, entity.col[1] // 2, entity.col[2] // 2)
-    
     if entity.shape == 0:
         pygame.draw.circle(window, darker, (int(render_x), int(render_y)), int(render_size + stroke_width / camera_fov))
-        pygame.draw.circle(window, entity.col, (int(render_x), int(render_y)), int(render_size))
+        pygame.draw.circle(window, color, (int(render_x), int(render_y)), int(render_size))
         
     elif entity.shape > 0:
         stroke_vertices = []
@@ -455,7 +470,7 @@ def draw_entity(entity):
             ))
         
         pygame.draw.polygon(window, darker, stroke_vertices)
-        pygame.draw.polygon(window, entity.col, fill_vertices)
+        pygame.draw.polygon(window, color, fill_vertices)
             
     elif entity.shape < 0:
         shape = abs(entity.shape) * 2
@@ -475,7 +490,7 @@ def draw_entity(entity):
         
 
         pygame.draw.polygon(window, darker, stroke_vertices)
-        pygame.draw.polygon(window, entity.col, fill_vertices)
+        pygame.draw.polygon(window, color, fill_vertices)
     
 
 def draw_hp_bar(entity):
@@ -538,10 +553,9 @@ for i in range(75):
     spawn_food(random.choice(["egg", "square", "triangle", "pentagon", "hexagon", "heptagon", "octagon"]), random.randrange(0, arena_dimensions[0]), random.randrange(0, arena_dimensions[1]))
 
 while True:
-    
+
     time_now = pygame.time.get_ticks()
     window.fill(COL_OUTER_BACKGROUND)
-    
     pygame.draw.rect(window, COL_BACKGROUND, pygame.Rect(-camera_x + window_dimensions[0] / 2, -camera_y + window_dimensions[1] / 2, arena_dimensions[0], arena_dimensions[1]))
     
     draw_grid(int(20 / camera_fov))
