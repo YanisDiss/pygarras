@@ -1,0 +1,13 @@
+# settings
+
+WINDOW_DIMENSIONS = (1280, 720)  # in pixels
+ARENA_DIMENSIONS = (3000, 3000) # also in pixels
+FRAMES_PER_SECOND = 60
+
+# defs
+CAMERA_X = ARENA_DIMENSIONS[0] / 2
+CAMERA_Y = ARENA_DIMENSIONS[1] / 2
+CAMERA_FOV = 1 # will be replaced by entity fov prop
+
+SPAWN_POINT = [ARENA_DIMENSIONS[0] / 2, ARENA_DIMENSIONS[1] / 2]
+STROKE_WIDTH = 3
