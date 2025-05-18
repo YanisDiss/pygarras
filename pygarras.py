@@ -2,31 +2,39 @@ import math
 import pygame
 import sys
 import random
+import json
 
 # Constants
 
 # Colors
-COL_BLACK = (0, 0, 0)
-COL_GREY = (128, 128, 128)
-COL_OUTER_BACKGROUND = (180, 180, 180)
-COL_BACKGROUND = (200, 200, 200)
-COL_GRID = (170, 170, 170)
-COL_WHITE = (255, 255, 255)
-COL_RED = (255, 48, 48)
-COL_GREEN = (87, 255, 87)
-COL_BLUE = (0, 180, 225)
-COL_YELLOW = (255, 255, 0)
-COL_VANILLA = (255, 255, 127)
-COL_PURPLE = (105, 43, 255)
-COL_ORANGE = (255, 129, 77)
-COL_PINK = (199, 38, 128)
-COL_LAVENDER = (150, 94, 199)
-COL_DARK_GREEN = (43, 186, 93)
+COLORS = {
+    "COL_BLACK": (0, 0, 0),
+    "COL_GREY": (128, 128, 128),
+    "COL_OUTER_BACKGROUND": (180, 180, 180),
+    "COL_BACKGROUND": (200, 200, 200),
+    "COL_GRID": (170, 170, 170),
+    "COL_WHITE": (255, 255, 255),
+    "COL_RED": (255, 48, 48),
+    "COL_GREEN": (87, 255, 87),
+    "COL_BLUE": (0, 180, 225),
+    "COL_YELLOW": (255, 255, 0),
+    "COL_VANILLA": (255, 255, 127),
+    "COL_PURPLE": (105, 43, 255),
+    "COL_ORANGE": (255, 129, 77),
+    "COL_PINK": (199, 38, 128),
+    "COL_LAVENDER": (150, 94, 199),
+    "COL_DARK_GREEN": (43, 186, 93)
+}
+
+# load tank definitions
+f = open("./tank_definitions.json")
+DEFINITIONS = json.load(f)
+f.close()
 
 # settings
 
 window_dimensions = (1280, 720)  # in pixels
-arena_dimensions = (2000, 2000) # also in pixels
+arena_dimensions = (3000, 3000) # also in pixels
 frames_per_second = 60
 
 # Parameters
@@ -73,26 +81,32 @@ def get_world_mouse():
     return (x, y)
 
 class Gun:
-    def __init__(self, master, length, width, aspect, x, y, angle, col, can_shoot, auto_shoot, fire_rate, delay, recoil, bullet_speed):
+    def __init__(self, master, length, width, aspect, x, y, angle, color, can_shoot, auto_shoot, fire_rate, delay, recoil, spread, shudder, bullet_speed, bullet_damage, entity):
         self.length = length
         self.width = width
         self.aspect = aspect
         self.x = x
         self.y = y
         self.angle = math.radians(angle)
-        self.col = col
+        self.color = COLORS[color]
         
         self.can_shoot = can_shoot
         self.master = master
         self.fire_rate = fire_rate
         
         self.recoil = recoil
+        self.spread = spread
+        self.shudder = shudder
+        
         self.bullet_speed = bullet_speed
+        self.bullet_damage = bullet_damage
         
         self.tick = self.fire_rate - (delay * fire_rate)
         self.length_recoil = 0
         
         self.auto_shoot = auto_shoot
+        
+        self.entity = entity
     
     def animate(self):
         self.length_recoil *= 0.9
@@ -106,61 +120,83 @@ class Gun:
             if self.tick >= self.fire_rate:
                 self.tick = 0
                 self.length_recoil = self.length / 2 * self.master.size/40
-                
-                spawn_x = self.master.x + self.x + math.cos(self.master.angle + self.angle) * (self.length * 2 * self.master.size/20)
-                spawn_y = self.master.y + self.y + math.sin(self.master.angle + self.angle) * (self.length * 2 * self.master.size/20)
+
+                spawn_x = self.master.x + math.cos(self.master.angle + self.angle) * ((self.length + self.x) * 2 * self.master.size/20)
+                spawn_y = self.master.y + math.sin(self.master.angle + self.angle) * ((self.length + self.x) * 2 * self.master.size/20)
                 spawn_size = self.width * (self.master.size / 20)
+                spawn_angle = self.master.angle + self.angle + random.uniform(-self.spread / 2, self.spread / 2)
+                spawn_angle_inverted = spawn_angle + math.pi
                 
-                bullet = Entity("bullet", spawn_x, spawn_y, spawn_size, 0, self.master.col, 5, self.master.team)
-                bullet.vx = math.cos(self.master.angle + self.angle) * self.bullet_speed
-                bullet.vy = math.sin(self.master.angle + self.angle) * self.bullet_speed
+                bullet = Entity(DEFINITIONS[self.entity], spawn_x, spawn_y)
+                bullet.color = self.master.color
+                bullet.team = self.master.team
+                bullet.size = spawn_size
+                bullet.angle = spawn_angle
+                bullet.vx = math.cos(spawn_angle) * (self.bullet_speed + random.uniform(-self.shudder / 2, self.shudder / 2))
+                bullet.vy = math.sin(spawn_angle) * (self.bullet_speed + random.uniform(-self.shudder / 2, self.shudder / 2))
                 
-                self.master.vx += math.cos(self.master.angle + self.angle + math.pi) * self.recoil
-                self.master.vy += math.sin(self.master.angle + self.angle + math.pi) * self.recoil
-                
-                entities.append(bullet)
-        
+                self.master.vx += math.cos(spawn_angle_inverted) * self.recoil
+                self.master.vy += math.sin(spawn_angle_inverted) * self.recoil
 
 class Entity:
-    def __init__(self, type, x, y, size, shape, col, health, team):
+    def __init__(self, definition, x, y):
+       
         self.x = x
         self.y = y
-        self.size = size
-        self.shape = shape
+        self.size = definition["size"]
+        self.shape = definition["shape"]
+        self.color = COLORS[definition["color"]]
+        self.type = definition["type"]
+        self.render_health = definition["render_health"]
+        self.lifetime = definition["lifetime"]
+        self.team = definition["team"]
+        
+        self.max_health = definition["body"]["health"]
+        self.health = definition["body"]["health"]
+        self.can_collide = definition["body"]["can_collide"]
+        
+        self.guns = []
+        for gun in definition["guns"]:
+            self.guns.append(Gun(
+                self,
+                gun["length"],
+                gun["width"],
+                gun["aspect"],
+                gun["x"],
+                gun["y"],
+                gun["angle"],
+                gun["color"],
+                gun["properties"]["can_shoot"],
+                gun["properties"]["auto_shoot"],
+                gun["properties"]["fire_rate"],
+                gun["properties"]["delay"],
+                gun["properties"]["recoil"],
+                gun["properties"]["spread"],
+                gun["properties"]["shudder"],
+                gun["properties"]["bullet_speed"],
+                gun["properties"]["bullet_damage"],
+                gun["properties"]["entity"]
+            ))
+        
         self.vx = 0.0
         self.vy = 0.0
         self.ax = 0.0
         self.ay = 0.0
-        self.col = col
-        self.health = health
-        self.max_health = health
         self.old_health_percentage = 1.0
         self.alive = 1
         self.angle = 0.0
-        self.type = type
-        self.guns = []
         self.id = entity_id
-        self.food_angle = random.randrange(0, 62831) / 10000 # idk how to put floats in the random function cuz it yells at me so i just put ints and divide after
-        
-        self.can_collide = 1
-        self.render_health = 1
-        self.lifetime = -1
-        
-        if type == "bullet":
-            self.can_collide = 0
-            self.lifetime = 75
-            self.render_health = 0
-        
-        self.team = team
+        self.food_angle = random.uniform(0, math.tau)
         self.tick = 0
-        
         self.render = 1
         self.die_animation_tick = 0
         self.is_visible = 0
         self.draw_on_minimap = False
         self.injured = 0
         self.injured_tick = 0
+        
         tick_entity_id()
+        entities.append(self)
     
     def step(self, delta_t):
         if self.alive:
@@ -171,9 +207,9 @@ class Entity:
             self.vy += self.ay * delta_t
 
             if self.type == "food":
-                self.angle -= math.hypot(self.vx, self.vy)
-                self.vx += math.cos(self.food_angle) * 0.002
-                self.vy += math.sin(self.food_angle) * 0.002
+                self.angle -= 0.02
+                self.vx += math.cos(self.food_angle) * 0.0013
+                self.vy += math.sin(self.food_angle) * 0.0013
 
             if self.id == player_entity_id:
                 player_mouse = get_world_mouse()
@@ -246,7 +282,7 @@ class Entity:
                 self.y = arena_dimensions[1] - self.size
                 self.vy = 0
             
-            self.food_angle += 0.02
+            self.food_angle += 0.01
             self.tick += 1
             
             self.change_health(0.005) # heal overtime
@@ -287,31 +323,7 @@ class Entity:
 
 def is_targeted(entity, mouse_pos):
     difference = math.hypot((entity.x - mouse_pos[0]), (entity.y - mouse_pos[1]))
-    return difference < entity.size
-
-def spawn_food(type, x, y):
-    if type == "egg":
-        food = Entity("food", x, y, 4, 0, COL_WHITE, 3, 100)
-        entities.append(food)
-    elif type == "square":
-        food = Entity("food", x, y, 15, 4, COL_YELLOW, 5, 100)
-        entities.append(food)
-    elif type == "triangle":
-        food = Entity("food", x, y, 17, 3, COL_ORANGE, 17, 100)
-        entities.append(food)
-    elif type == "pentagon":
-        food = Entity("food", x, y, 20, 5, COL_PURPLE, 35, 100)
-        entities.append(food)
-    elif type == "hexagon":
-        food = Entity("food", x, y, 40, 6, COL_PINK, 200, 100)
-        entities.append(food)
-    elif type == "heptagon":
-        food = Entity("food", x, y, 46, 7, COL_DARK_GREEN, 300, 100)
-        entities.append(food)
-    elif type == "octagon":
-        food = Entity("food", x, y, 55, 8, COL_LAVENDER, 500, 100)
-        entities.append(food)
-    
+    return difference < entity.size 
 
 player_mouse_left = 0
 player_mouse_middle = 0
@@ -373,11 +385,8 @@ def manage_inputs(input_type, down):
                 if entity.alive and is_targeted(entity, get_world_mouse()):
                     entity.size -= 5
                     
-        if event.key == pygame.K_j:
-            for entity in entities[:]:
-                if entity.alive and entity.guns == [] and is_targeted(entity, get_world_mouse()):
-                    for i in range(abs(entity.shape)) :
-                        entity.guns.append(Gun(entity, 12, 8, 1, 0, 0, (360 / abs(entity.shape)) * i - (360 / abs(entity.shape)) / 2, COL_GREY, 1, 1, 50, i * (1 / abs(entity.shape)), 0.04, 0.35))
+        if event.key == pygame.K_f:
+           food = Entity(DEFINITIONS["pentagon"], get_world_mouse()[0], get_world_mouse()[1])
 
         if event.key == pygame.K_h:
             for entity in entities[:]:
@@ -386,7 +395,7 @@ def manage_inputs(input_type, down):
 
         if event.key == pygame.K_m:
             for entity in entities[:]:
-                if entity.alive and entity.type != "tank" and entity.type != "bullet":
+                if entity.alive and is_targeted(entity, get_world_mouse()):
                     entity.draw_on_minimap = not entity.draw_on_minimap
     
     if input_type == "mouse":
@@ -398,9 +407,9 @@ def draw_grid(cell_size):
     grid_y = camera_y / camera_fov % cell_size
     
     for x in range(0, window_dimensions[0] + 1, cell_size):
-        pygame.draw.line(window, COL_GRID, (x - grid_x, 0), (x - grid_x, window_dimensions[1]), int(2 / camera_fov))
+        pygame.draw.line(window, COLORS["COL_GRID"], (x - grid_x, 0), (x - grid_x, window_dimensions[1]), int(2 / camera_fov))
     for y in range(0, window_dimensions[1] + 1, cell_size):
-        pygame.draw.line(window, COL_GRID, (0, y - grid_y), (window_dimensions[0], y - grid_y), int(2 / camera_fov))
+        pygame.draw.line(window, COLORS["COL_GRID"], (0, y - grid_y), (window_dimensions[0], y - grid_y), int(2 / camera_fov))
 
 def draw_guns(entity):
     render_x = (entity.x - camera_x + (window_dimensions[0] * camera_fov) / 2) / camera_fov
@@ -410,8 +419,8 @@ def draw_guns(entity):
         angle = entity.angle + gun.angle
         length = (gun.length * 2 * entity.size/20 - gun.length_recoil) / camera_fov
         width = (gun.width * entity.size/20) / camera_fov
-        lighter = (min(gun.col[0] + 50, 255), min(gun.col[1] + 50, 255), min(gun.col[2] + 50, 255))
-        color = lighter if entity.injured == 1 and entity.injured_tick == 1 else gun.col
+        lighter = (min(gun.color[0] + 50, 255), min(gun.color[1] + 50, 255), min(gun.color[2] + 50, 255))
+        color = lighter if entity.injured == 1 and entity.injured_tick == 1 else gun.color
         darker = (color[0] // 2, color[1] // 2, color[2] // 2)
 
         aspect = gun.aspect if gun.aspect > 1 else gun.aspect if 0<gun.aspect<=1 else 1
@@ -446,8 +455,8 @@ def draw_entity(entity):
     render_x = (entity.x - camera_x + (window_dimensions[0] * camera_fov) / 2) / camera_fov
     render_y = (entity.y - camera_y + (window_dimensions[1] * camera_fov) / 2) / camera_fov
     render_size = entity.size / camera_fov
-    lighter = (min(entity.col[0] + 50, 255), min(entity.col[1] + 50, 255), min(entity.col[2] + 50, 255))
-    color = lighter if entity.injured == 1 and entity.injured_tick == 1 else entity.col
+    lighter = (min(entity.color[0] + 50, 255), min(entity.color[1] + 50, 255), min(entity.color[2] + 50, 255))
+    color = lighter if entity.injured == 1 and entity.injured_tick == 1 else entity.color
     darker = (color[0] // 2, color[1] // 2, color[2] // 2)
 
     if entity.guns != []: draw_guns(entity)
@@ -510,68 +519,52 @@ def draw_hp_bar(entity):
         #pygame.draw.line(window, COL_BLACK, (start_x, start_y), (end_x, end_y), 6)
         #pygame.draw.line(window, COL_GREEN, (start_x, start_y), (end_x * (entity.old_health_percentage), end_y), 3)
         
-        pygame.draw.rect(window, COL_BLACK, (render_x - entity.size - outline_width / 2, render_y + entity.size + 10 - outline_width / 2, (entity.size * 2 + outline_width), bar_width + outline_width ), 0, 10)
-        pygame.draw.rect(window, COL_GREEN, (render_x - entity.size                    , render_y + entity.size + 10                    , (entity.size * 2 * (entity.old_health_percentage)), bar_width), 0, 10)
+        pygame.draw.rect(window, COLORS["COL_BLACK"], (render_x - entity.size - outline_width / 2, render_y + entity.size + 10 - outline_width / 2, (entity.size * 2 + outline_width), bar_width + outline_width ), 0, 10)
+        pygame.draw.rect(window, COLORS["COL_GREEN"], (render_x - entity.size                    , render_y + entity.size + 10                    , (entity.size * 2 * (entity.old_health_percentage)), bar_width), 0, 10)
 
 
 def draw_minimap():
     transparent = pygame.Surface(window_dimensions, pygame.SRCALPHA)
-    pygame.draw.rect(transparent, (*COL_BACKGROUND, 128), ((window_dimensions[0]-ui_minimap_size-ui_offset, window_dimensions[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)))
+    pygame.draw.rect(transparent, (*COLORS["COL_BACKGROUND"], 128), ((window_dimensions[0]-ui_minimap_size-ui_offset, window_dimensions[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)))
     window.blit(transparent, (0, 0))
-    pygame.draw.rect(window, COL_BLACK, ((window_dimensions[0]-ui_minimap_size-ui_offset, window_dimensions[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)), ui_stroke_width)
+    pygame.draw.rect(window, COLORS["COL_BLACK"], ((window_dimensions[0]-ui_minimap_size-ui_offset, window_dimensions[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)), ui_stroke_width)
 
-    # pygarras.io text
-    text = large_font.render("pygarras.io", True, COL_BLACK)
+    # text
+    text = large_font.render("pygarras.io", True, COLORS["COL_BLACK"])
     window.blit(text, (window_dimensions[0]-ui_minimap_size-ui_offset + 40, window_dimensions[1]-ui_minimap_size-ui_offset - 30))
 
 
-def draw_minimap_point(entity, col=None):
+def draw_minimap_point(entity, color=None):
     point_radius = 2
-    color = entity.col if col is None else col
+    color = entity.color if color is None else color
     render_x = (window_dimensions[0] - ui_minimap_size - ui_offset) + (entity.x / arena_dimensions[0]) * ui_minimap_size
     render_y = (window_dimensions[1] - ui_minimap_size - ui_offset) + (entity.y / arena_dimensions[1]) * ui_minimap_size
     
     pygame.draw.circle(window, color, (int(render_x), int(render_y)), point_radius, 0)
 
-"""
-player = Entity(initial_position[0], initial_position[1], 20, 0, COL_BLUE, 100, "tank")
-player.guns.append(Gun(player, 32, 8, 1, 0, 0, 0, COL_GREY, 1))
-player.guns.append(Gun(player, 5, 8, -1.4, 8, 0, 0, COL_GREY, 0))
-player_entity_id = player.id
-entities.append(player)
-"""
+player = (Entity(DEFINITIONS["booster"], initial_position[0], initial_position[1]))
+player.color = COLORS["COL_BLUE"]
 
-player = Entity("tank", initial_position[0], initial_position[1], 20, 0, COL_BLUE, 75, 0)
-player.guns.append(Gun(player, 18, 8, 1, 0, 0, 0, COL_GREY, 1, 0, 20, 0, 0.01, 0.35))
-player.guns.append(Gun(player, 14, 8, 1, 0, -1, 140, COL_GREY, 1, 0, 20, 0, 0.04, 0.35))
-player.guns.append(Gun(player, 14, 8, 1, 0, 1, -140, COL_GREY, 1, 0, 20, 0, 0.04, 0.335))
-player.guns.append(Gun(player, 16, 8, 1, 0, 0, 150, COL_GREY, 1, 0, 20, 0.5, 0.04, 0.35))
-player.guns.append(Gun(player, 16, 8, 1, 0, 0, -150, COL_GREY, 1, 0, 20, 0.5, 0.04, 0.35))
-entities.append(player)
-
-for i in range(75):
-    spawn_food(random.choice(["egg", "square", "triangle", "pentagon", "hexagon", "heptagon", "octagon"]), random.randrange(0, arena_dimensions[0]), random.randrange(0, arena_dimensions[1]))
+for i in range(150):
+    Entity(DEFINITIONS[random.choice(["egg", "square", "triangle", "pentagon"])], random.randrange(0, arena_dimensions[0]), random.randrange(0, arena_dimensions[1]))
 
 while True:
 
     time_now = pygame.time.get_ticks()
-    window.fill(COL_OUTER_BACKGROUND)
-    pygame.draw.rect(window, COL_BACKGROUND, pygame.Rect(-camera_x + window_dimensions[0] / 2, -camera_y + window_dimensions[1] / 2, arena_dimensions[0], arena_dimensions[1]))
+    window.fill(COLORS["COL_OUTER_BACKGROUND"])
+    pygame.draw.rect(window, COLORS["COL_BACKGROUND"], pygame.Rect(-camera_x + window_dimensions[0] / 2, -camera_y + window_dimensions[1] / 2, arena_dimensions[0], arena_dimensions[1]))
     
     draw_grid(int(20 / camera_fov))
     time = pygame.time.Clock()
     delta = time.tick(frames_per_second)
     
-    # do a physics step for all entities
+    # do a physics step and draw all entities
     for entity in entities:
         entity.step(delta)
-
-    # draw the in-game elements
-    for entity in entities:
         if entity.render and entity.is_visible:
             draw_entity(entity)
 
-    # draw the in-game ui
+    # draw entity info
     for entity in entities:
         if entity.render and entity.render_health and entity.is_visible:
             draw_hp_bar(entity)
@@ -580,8 +573,8 @@ while True:
     draw_minimap()
     for entity in entities:
         if entity.render and entity.draw_on_minimap:
-            if entity.type == "tank":
-                draw_minimap_point(entity, COL_BLACK)
+            if player_entity_id == entity.id:
+                draw_minimap_point(entity, COLORS["COL_BLACK"])
             else: draw_minimap_point(entity)
 
     for event in pygame.event.get():

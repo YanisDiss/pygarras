@@ -1,0 +1,303 @@
+{
+	"bullet": {
+		"name": "Bullet",
+		"color": "COL_GREY",
+		"size": 1,
+		"type": "bullet",
+		"shape": 0,
+		"team": 0,
+		"lifetime": 75,
+		"render_health": false,
+		"body": {
+			"can_collide": false,
+			"damage": 0.1,
+			"health": 10
+		},
+		"guns": []
+	},
+	"missile": {
+		"name": "Bullet",
+		"color": "COL_GREY",
+		"size": 1,
+		"type": "bullet",
+		"shape": 0,
+		"team": 0,
+		"lifetime": 125,
+		"render_health": false,
+		"body": {
+			"can_collide": false,
+			"damage": 0.1,
+			"health": 10
+		},
+		"guns": [
+			{
+				"length": 16,
+				"width": 8,
+				"aspect": 2,
+				"x": 0,
+				"y": 0,
+				"angle": 180,
+				"color": "COL_GREY",
+				"properties": {
+					"can_shoot": true,
+					"auto_shoot": true,
+					"fire_rate": 20,
+					"delay": 1,
+					"recoil": 0.07,
+					"bullet_speed": 0.2,
+					"bullet_damage": 0.1,
+					"spread": 0.4,
+					"shudder": 0.1,
+					"entity": "bullet"
+				}
+			}
+		]
+	},
+	
+	"egg": {
+		"name": "Egg",
+		"color": "COL_WHITE",
+		"size": 4,
+		"shape": 0,
+		"type": "food",
+		"team": 100,
+		"lifetime": -1,
+		"render_health": false,
+		"body": {
+			"can_collide": false,
+			"damage": 0,
+			"health": 1
+		},
+		"guns": []
+	},
+	"square": {
+		"name": "Square",
+		"color": "COL_YELLOW",
+		"size": 15,
+		"shape": 4,
+		"type": "food",
+		"team": 100,
+		"lifetime": -1,
+		"render_health": true,
+		"body": {
+			"can_collide": true,
+			"damage": 0,
+			"health": 4
+		},
+		"guns": []
+	},
+	"triangle": {
+		"name": "Triangle",
+		"color": "COL_ORANGE",
+		"size": 17,
+		"shape": 3,
+		"type": "food",
+		"team": 100,
+		"lifetime": -1,
+		"render_health": true,
+		"body": {
+			"can_collide": true,
+			"damage": 0,
+			"health": 10
+		},
+		"guns": []
+	},
+	"pentagon": {
+		"name": "Pentagon",
+		"color": "COL_PURPLE",
+		"size": 19,
+		"shape": 5,
+		"type": "food",
+		"team": 100,
+		"lifetime": -1,
+		"render_health": true,
+		"body": {
+			"can_collide": true,
+			"damage": 0,
+			"health": 30
+		},
+		"guns": []
+	},
+	
+	"missile_shooter": {
+		"name": "Missile Shooter",
+		"color": "COL_GREY",
+		"size": 20,
+		"type": "tank",
+		"shape": 0,
+		"team": 0,
+		"lifetime": -1,
+		"render_health": true,
+		"body": {
+			"can_collide": true,
+			"damage": 0.1,
+			"health": 100
+		},
+		"guns": [
+			{
+				"length": 16,
+				"width": 15,
+				"aspect": -1.5,
+				"x": 0,
+				"y": 0,
+				"angle": 0,
+				"color": "COL_GREY",
+				"properties": {
+					"can_shoot": false,
+					"auto_shoot": false,
+					"fire_rate": 20,
+					"delay": 0,
+					"recoil": 0.05,
+					"bullet_speed": 0.2,
+					"bullet_damage": 0.1,
+					"spread": 0.3,
+					"shudder": 0.1,
+					"entity": "missile"
+				}
+			},
+			{
+				"length": 4,
+				"width": 15,
+				"aspect": 1.2,
+				"x": 16,
+				"y": 0,
+				"angle": 0,
+				"color": "COL_GREY",
+				"properties": {
+					"can_shoot": true,
+					"auto_shoot": false,
+					"fire_rate": 20,
+					"delay": 0,
+					"recoil": 0.05,
+					"bullet_speed": 0.2,
+					"bullet_damage": 0.1,
+					"spread": 0.3,
+					"shudder": 0.1,
+					"entity": "missile"
+				}
+			}
+		]
+	},
+	"booster": {
+		"name": "Booster",
+		"color": "COL_GREY",
+		"size": 20,
+		"type": "tank",
+		"shape": 0,
+		"team": 0,
+		"lifetime": -1,
+		"render_health": true,
+		"body": {
+			"can_collide": true,
+			"damage": 0.1,
+			"health": 100
+		},
+		"guns": [
+			{
+				"length": 18,
+				"width": 8,
+				"aspect": 1,
+				"x": 0,
+				"y": 0,
+				"angle": 0,
+				"color": "COL_GREY",
+				"properties": {
+					"can_shoot": true,
+					"auto_shoot": false,
+					"fire_rate": 20,
+					"delay": 0,
+					"recoil": 0.01,
+					"bullet_speed": 0.35,
+					"bullet_damage": 0.1,
+					"spread": 0.3,
+					"shudder": 0.1,
+					"entity": "bullet"
+				}
+			},
+			{
+				"length": 14,
+				"width": 8,
+				"aspect": 1,
+				"x": 0,
+				"y": -1,
+				"angle": 140,
+				"color": "COL_GREY",
+				"properties": {
+					"can_shoot": true,
+					"auto_shoot": false,
+					"fire_rate": 20,
+					"delay": 0.6,
+					"recoil": 0.05,
+					"bullet_speed": 0.35,
+					"bullet_damage": 0.03,
+					"spread": 0.3,
+					"shudder": 0.1,
+					"entity": "bullet"
+				}
+			},
+			{
+				"length": 14,
+				"width": 8,
+				"aspect": 1,
+				"x": 0,
+				"y": 1,
+				"angle": -140,
+				"color": "COL_GREY",
+				"properties": {
+					"can_shoot": true,
+					"auto_shoot": false,
+					"fire_rate": 20,
+					"delay": 0.6,
+					"recoil": 0.05,
+					"bullet_speed": 0.35,
+					"bullet_damage": 0.03,
+					"spread": 0.3,
+					"shudder": 0.1,
+					"entity": "bullet"
+				}
+			},
+			{
+				"length": 16,
+				"width": 8,
+				"aspect": 1,
+				"x": 0,
+				"y": 1,
+				"angle": 150,
+				"color": "COL_GREY",
+				"properties": {
+					"can_shoot": true,
+					"auto_shoot": false,
+					"fire_rate": 20,
+					"delay": 0.1,
+					"recoil": 0.05,
+					"bullet_speed": 0.35,
+					"bullet_damage": 0.03,
+					"spread": 0.3,
+					"shudder": 0.1,
+					"entity": "bullet"
+				}
+			},
+			{
+				"length": 16,
+				"width": 8,
+				"aspect": 1,
+				"x": 0,
+				"y": 0,
+				"angle": -150,
+				"color": "COL_GREY",
+				"properties": {
+					"can_shoot": true,
+					"auto_shoot": false,
+					"fire_rate": 20,
+					"delay": 0.1,
+					"recoil": 0.05,
+					"bullet_speed": 0.35,
+					"bullet_damage": 0.03,
+					"spread": 0.3,
+					"shudder": 0.1,
+					"entity": "bullet"
+				}
+			}
+		]
+	}
+}
