@@ -20,31 +20,54 @@ clock = pygame.time.Clock()
 pygame.key.set_repeat(50, 50)
 
 
-player = (Entity(DEFINITIONS["booster"], c.SPAWN_POINT[0], c.SPAWN_POINT[1]))
-player.color = COLORS["COL_BLUE"]
+player = (Entity(DEFINITIONS["arena_closer"], c.SPAWN_POINT[0], c.SPAWN_POINT[1]))
+if player.color == COLORS["COL_GREY"]:
+    player.color = COLORS["COL_BLUE"]
 
 for i in range(150):
-    Entity(DEFINITIONS[random.choice(["egg", "square", "triangle", "pentagon"])], random.randrange(0, c.ARENA_DIMENSIONS[0]), random.randrange(0, c.ARENA_DIMENSIONS[1]))
+    pos = (random.uniform(0, c.ARENA_DIMENSIONS[0]), random.uniform(0, c.ARENA_DIMENSIONS[1]))
+    rand = random.randrange(0, 4)
+    
+    global food
+    if rand == 0:
+        food = Entity(DEFINITIONS["egg"], pos[0], pos[1])
+    if rand == 1:
+        food = Entity(DEFINITIONS["square"], pos[0], pos[1])
+    if rand == 2:
+        food = Entity(DEFINITIONS["triangle"], pos[0], pos[1])
+    if rand == 3:
+        rand = random.randrange(0, 2)
+        if rand == 0:
+            food = Entity(DEFINITIONS["pentagon"], pos[0], pos[1])
+        if rand == 1:
+            rand = random.randrange(0, 2)
+            if rand == 0:
+                food = Entity(DEFINITIONS["beta_pentagon"], pos[0], pos[1])
+            if rand == 1:
+                food = Entity(DEFINITIONS["alpha_pentagon"], pos[0], pos[1])
+    food.angle = random.uniform(0, math.tau)
 
 while True:
     from inputs import manage_inputs, player_mouse_left, player_move_up, player_move_down, player_move_left, player_move_right
     time_now = pygame.time.get_ticks()
     window.fill(COLORS["COL_OUTER_BACKGROUND"])
-    pygame.draw.rect(window, COLORS["COL_BACKGROUND"], pygame.Rect(-c.CAMERA_X + c.WINDOW_DIMENSIONS[0] / 2, -c.CAMERA_Y + c.WINDOW_DIMENSIONS[1] / 2, c.ARENA_DIMENSIONS[0], c.ARENA_DIMENSIONS[1]))
+    pygame.draw.rect(window, COLORS["COL_BACKGROUND"], pygame.Rect(-(c.CAMERA_X / c.CAMERA_FOV) + c.WINDOW_DIMENSIONS[0] / 2, -(c.CAMERA_Y / c.CAMERA_FOV) + c.WINDOW_DIMENSIONS[1] / 2, c.ARENA_DIMENSIONS[0] / c.CAMERA_FOV, c.ARENA_DIMENSIONS[1] / c.CAMERA_FOV))
     
     draw_grid(int(20 / c.CAMERA_FOV))
     time = pygame.time.Clock()
     delta = time.tick(c.FRAMES_PER_SECOND)
     
+    c.CAMERA_FOV += (c.CAMERA_FOV_TARGET - c.CAMERA_FOV) / 10
+    
     # do a physics step and draw all entities
     for entity in entities:
-        entity.step(delta)
-        if entity.render and entity.is_visible:
+        if entity.render:
             draw_entity(entity)
+        entity.step(delta)
 
     # draw entity info
     for entity in entities:
-        if entity.render and entity.render_health and entity.is_visible:
+        if entity.render and entity.render_health:
             draw_hp_bar(entity)
 
     #draw the actual ui

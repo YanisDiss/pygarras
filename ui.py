@@ -16,21 +16,20 @@ def draw_hp_bar(entity):
     render_x = (entity.x - c.CAMERA_X + (c.WINDOW_DIMENSIONS[0] * c.CAMERA_FOV) / 2) / c.CAMERA_FOV
     render_y = (entity.y - c.CAMERA_Y + (c.WINDOW_DIMENSIONS[1] * c.CAMERA_FOV) / 2) / c.CAMERA_FOV
     
-    outline_width = 3.5
-    bar_width = 3
+    
+    render_entity_size = entity.size * (2 / c.CAMERA_FOV)
+    render_offset_x = -(entity.size / c.CAMERA_FOV) + render_x
+    render_offset_y = (entity.size + 10) / c.CAMERA_FOV + render_y
+    
+    render_bar_width = 3 / c.CAMERA_FOV
+    render_outline_width = 3.5 / c.CAMERA_FOV
+    
     if entity.alive and entity.health < entity.max_health:
         health_percentage = entity.health / entity.max_health
         entity.old_health_percentage += (health_percentage - entity.old_health_percentage) * 0.3
-
-        #start_x = render_x - entity.size - width/2
-        #start_y = render_y + entity.size + 10 - width/2
-        #end_x = render_x + entity.size * 2 + width
-        #end_y = render_y + entity.size + 10 - width/2
-        #pygame.draw.line(window, COL_BLACK, (start_x, start_y), (end_x, end_y), 6)
-        #pygame.draw.line(window, COL_GREEN, (start_x, start_y), (end_x * (entity.old_health_percentage), end_y), 3)
         
-        pygame.draw.rect(window, COLORS["COL_BLACK"], (render_x - entity.size - outline_width / 2, render_y + entity.size + 10 - outline_width / 2, (entity.size * 2 + outline_width), bar_width + outline_width ), 0, 10)
-        pygame.draw.rect(window, COLORS["COL_GREEN"], (render_x - entity.size                    , render_y + entity.size + 10                    , (entity.size * 2 * (entity.old_health_percentage)), bar_width), 0, 10)
+        pygame.draw.rect(window, COLORS["COL_BLACK"], (render_offset_x - render_outline_width / 2, render_offset_y - render_outline_width / 2, (render_entity_size + render_outline_width)          , render_bar_width + render_outline_width ), 0, 10)
+        pygame.draw.rect(window, COLORS["COL_GREEN"], (render_offset_x                           , render_offset_y                           , (render_entity_size * (entity.old_health_percentage)), render_bar_width)                        , 0, 10)
 
 
 def draw_minimap():

@@ -44,7 +44,7 @@ class Gun:
         self.entity = entity
     
     def animate(self):
-        self.length_recoil *= 0.9
+        self.length_recoil *= 0.85
         if self.auto_shoot:
             self.shoot()
     
@@ -56,8 +56,8 @@ class Gun:
                 self.tick = 0
                 self.length_recoil = self.length / 2 * self.master.size/40
 
-                spawn_x = self.master.x + math.cos(self.master.angle + self.angle) * ((self.length + self.x) * 2 * self.master.size/20)
-                spawn_y = self.master.y + math.sin(self.master.angle + self.angle) * ((self.length + self.x) * 2 * self.master.size/20)
+                spawn_x = self.master.x + math.cos(self.master.angle + self.angle) * ((self.length * 2 + self.x) * self.master.size/20)
+                spawn_y = self.master.y + math.sin(self.master.angle + self.angle) * ((self.length * 2 + self.x) * self.master.size/20)
                 spawn_size = self.width * (self.master.size / 20)
                 spawn_angle = self.master.angle + self.angle + random.uniform(-self.spread / 2, self.spread / 2)
                 spawn_angle_inverted = spawn_angle + math.pi
@@ -67,8 +67,10 @@ class Gun:
                 bullet.team = self.master.team
                 bullet.size = spawn_size
                 bullet.angle = spawn_angle
+                bullet.body_damage += self.bullet_damage
                 bullet.vx = math.cos(spawn_angle) * (self.bullet_speed + random.uniform(-self.shudder / 2, self.shudder / 2))
                 bullet.vy = math.sin(spawn_angle) * (self.bullet_speed + random.uniform(-self.shudder / 2, self.shudder / 2))
+                bullet.master = self.master
                 
                 self.master.vx += math.cos(spawn_angle_inverted) * self.recoil
                 self.master.vy += math.sin(spawn_angle_inverted) * self.recoil
@@ -89,6 +91,14 @@ class Entity:
         self.max_health = definition["body"]["health"]
         self.health = definition["body"]["health"]
         self.can_collide = definition["body"]["can_collide"]
+        self.body_damage = definition["body"]["damage"]
+        self.friction = definition["body"]["friction"]
+        self.density = definition["body"]["density"]
+        self.regen = definition["body"]["regen"]
+        
+        self.upgrades = definition["upgrades"]
+        
+        self.facing_type = definition["facing_type"]
         
         self.guns = []
         for gun in definition["guns"]:
@@ -125,13 +135,62 @@ class Entity:
         self.tick = 0
         self.render = 1
         self.die_animation_tick = 0
-        self.is_visible = 0
         self.draw_on_minimap = False
         self.injured = 0
         self.injured_tick = 0
+        self.master = self
         
         tick_entity_id()
         entities.append(self)
+    
+    def define(self, definition):
+        self.shape = definition["shape"]
+        self.type = definition["type"]
+        self.render_health = definition["render_health"]
+        self.lifetime = definition["lifetime"]
+        
+        self.max_health = definition["body"]["health"]
+        self.health = definition["body"]["health"]
+        self.can_collide = definition["body"]["can_collide"]
+        self.friction = definition["body"]["friction"]
+        self.density = definition["body"]["density"]
+        self.regen = definition["body"]["regen"]
+        
+        self.upgrades = definition["upgrades"]
+        
+        self.facing_type = definition["facing_type"]
+        
+        self.guns = []
+        for gun in definition["guns"]:
+            self.guns.append(Gun(
+                self,
+                gun["length"],
+                gun["width"],
+                gun["aspect"],
+                gun["x"],
+                gun["y"],
+                gun["angle"],
+                gun["color"],
+                gun["properties"]["can_shoot"],
+                gun["properties"]["auto_shoot"],
+                gun["properties"]["fire_rate"],
+                gun["properties"]["delay"],
+                gun["properties"]["recoil"],
+                gun["properties"]["spread"],
+                gun["properties"]["shudder"],
+                gun["properties"]["bullet_speed"],
+                gun["properties"]["bullet_damage"],
+                gun["properties"]["entity"]
+            ))
+    
+    def collide(self, other):
+        angle1 = math.atan2(self.y - other.y, self.x - other.x)
+        self.vx += math.cos(angle1) * self.density
+        self.vy += math.sin(angle1) * self.density
+                                            
+        angle2 = math.atan2(other.y - self.y, other.x - self.x)
+        other.vx += math.cos(angle2) * other.density
+        other.vy += math.sin(angle2) * other.density
     
     def step(self, delta_t):
         from inputs import manage_inputs, player_mouse_left, player_move_up, player_move_down, player_move_left, player_move_right
@@ -141,6 +200,13 @@ class Entity:
 
             self.vx += self.ax * delta_t
             self.vy += self.ay * delta_t
+            
+            if type(self.facing_type) == list:
+                if self.facing_type[0] == "spin":
+                    self.angle += self.facing_type[1]
+                    
+            if self.facing_type == "spinWithSpeed":
+                self.angle -= math.hypot(self.vx, self.vy)
 
             if self.type == "food":
                 self.angle -= 0.02
@@ -148,8 +214,9 @@ class Entity:
                 self.vy += math.sin(self.food_angle) * 0.0013
 
             if self.id == player_entity_id:
-                player_mouse = get_world_mouse()
-                self.angle = math.atan2(player_mouse[1] - self.y, player_mouse[0] - self.x)
+                if self.facing_type == "default":
+                    player_mouse = get_world_mouse()
+                    self.angle = math.atan2(player_mouse[1] - self.y, player_mouse[0] - self.x)
                 
                 c.CAMERA_X = self.x
                 c.CAMERA_Y = self.y
@@ -176,25 +243,21 @@ class Entity:
                     dist = math.hypot(self.x - other.x, self.y - other.y)
                     
                     if dist <= self.size + other.size:
-                        if self.can_collide and other.can_collide:
-                            angle1 = math.atan2(self.y - other.y, self.x - other.x)
-                            self.vx += math.cos(angle1) * 0.01
-                            self.vy += math.sin(angle1) * 0.01
-                            
-                            angle2 = math.atan2(other.y - self.y, other.x - self.x)
-                            other.vx += math.cos(angle2) * 0.01
-                            other.vy += math.sin(angle2) * 0.01
+                        if self.master.id != other.id and other.master.id != self.id:
+                            if self.can_collide[0] and other.can_collide[0]:
+                                
+                                if self.can_collide[1] and other.can_collide[1]:
+                                    self.collide(other)
+                                else:
+                                    if self.type != other.type:
+                                        self.collide(other)
                             
                         if self.team != other.team:
-                            self.change_health(-0.2)
-                            other.change_health(-0.2)
+                            self.change_health(-other.body_damage)
+                            other.change_health(-self.body_damage)
                         
-            if self.type != "bullet":
-                self.vx *= 0.95
-                self.vy *= 0.95
-            else: 
-                self.vx *= 0.99
-                self.vy *= 0.99
+            self.vx *= self.friction
+            self.vy *= self.friction
             
             self.x += self.vx * delta_t
             self.y += self.vy * delta_t
@@ -218,17 +281,17 @@ class Entity:
             self.food_angle += 0.01
             self.tick += 1
             
-            self.change_health(0.005) # heal overtime
+            self.change_health(self.regen) # heal overtime
             
             if self.tick == self.lifetime:
                 self.kill()
             
         else:
             self.size -= self.size / 100 * delta_t
-            self.x += self.vx * delta_t
-            self.y += self.vy * delta_t
-            self.vx += self.ax * delta_t
-            self.vy += self.ay * delta_t
+            #self.x += self.vx * delta_t
+            #self.y += self.vy * delta_t
+            #self.vx += self.ax * delta_t
+            #self.vy += self.ay * delta_t
             
             if self.size <= 2:
                 self.render = 0
@@ -239,18 +302,6 @@ class Entity:
             self.injured_tick ^= 1 # toggle btween 0 and 1
         else:
             self.injured_tick = 0
-
-        """render_x = entity.x - c.CAMERA_X + c.WINDOW_DIMENSIONS[0] / 2
-        render_y = entity.y - c.CAMERA_Y + c.WINDOW_DIMENSIONS[1] / 2
-        entity.is_visible = 1
-        if (render_x < -entity.size or render_x > c.WINDOW_DIMENSIONS[0] + entity.size or render_y < -entity.size or render_y > c.WINDOW_DIMENSIONS[1] + entity.size):
-            entity.is_visible = 0"""
-        
-        render_x = self.x - c.CAMERA_X + c.WINDOW_DIMENSIONS[0] / 2
-        render_y = self.y - c.CAMERA_Y + c.WINDOW_DIMENSIONS[1] / 2
-        self.is_visible = 1
-        if (render_x < -self.size or render_x > c.WINDOW_DIMENSIONS[0] + self.size or render_y < -self.size or render_y > c.WINDOW_DIMENSIONS[1] + self.size):
-            self.is_visible = 0
         
     def change_health(self, amount):
         self.health += amount

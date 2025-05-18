@@ -49,20 +49,15 @@ def manage_inputs(event,input_type, down):
         if event.key == pygame.K_k:
             for entity in entities[:]:
                 if entity.alive and is_targeted(entity, get_world_mouse()):
-                    entity.kill()
+                    entity.define(DEFINITIONS["octo_tank"])
                     
         if event.key == pygame.K_e:
-            for entity in entities[:]:
-                if entity.alive and is_targeted(entity, get_world_mouse()):
-                    entity.size += 5
+            c.CAMERA_FOV_TARGET += 0.1
                     
         if event.key == pygame.K_q:
-            for entity in entities[:]:
-                if entity.alive and is_targeted(entity, get_world_mouse()):
-                    entity.size -= 5
+            c.CAMERA_FOV_TARGET -= 0.1
                     
         if event.key == pygame.K_f:
-           from entity import Entity
            food = Entity(DEFINITIONS["pentagon"], get_world_mouse()[0], get_world_mouse()[1])
 
         if event.key == pygame.K_h:
