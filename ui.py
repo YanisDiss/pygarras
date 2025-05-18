@@ -40,8 +40,8 @@ def draw_minimap():
     pygame.draw.rect(window, COLORS["COL_BLACK"], ((c.WINDOW_DIMENSIONS[0]-ui_minimap_size-ui_offset, c.WINDOW_DIMENSIONS[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)), ui_stroke_width)
 
     # text
-    text = large_font.render("pygarras.io", True, COLORS["COL_BLACK"])
-    window.blit(text, (c.WINDOW_DIMENSIONS[0]-ui_minimap_size-ui_offset + 40, c.WINDOW_DIMENSIONS[1]-ui_minimap_size-ui_offset - 30))
+    pygarras_text = large_font.render("pygarras.io", True, COLORS["COL_BLACK"])
+    window.blit(pygarras_text, (c.WINDOW_DIMENSIONS[0]-ui_offset-108, c.WINDOW_DIMENSIONS[1]-ui_minimap_size-ui_offset - 30))
 
 
 def draw_minimap_point(entity, color=None):

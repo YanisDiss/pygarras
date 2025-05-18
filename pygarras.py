@@ -16,7 +16,7 @@ from definitions import DEFINITIONS
 
 pygame.init()
 pygame.display.set_caption("pygarras")
-horloge = pygame.time.Clock()
+clock = pygame.time.Clock()
 pygame.key.set_repeat(50, 50)
 
 
@@ -73,4 +73,4 @@ while True:
     
 
     pygame.display.flip()
-    horloge.tick(c.FRAMES_PER_SECOND)
+    clock.tick(c.FRAMES_PER_SECOND)
