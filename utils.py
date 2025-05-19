@@ -14,8 +14,8 @@ def is_targeted(entity, mouse_pos):
     difference = math.hypot((entity.x - mouse_pos[0]), (entity.y - mouse_pos[1]))
     return difference < entity.size
 
-def make_color_lighter(color):
-    return (min(color[0] + 65, 255), min(color[1] + 65, 255), min(color[2] + 65, 255))
+def shift_color_brightness(color, amount):
+    return (max(min(color[0] + amount, 255),0), max(min(color[1] + amount, 255),0), max(min(color[2] + amount, 255),0))
 
 def make_color_darker(color):
-    return (color[0] // 2, color[1] // 2, color[2] // 2)
+    return (color[0] // 2, color[1] // 2, color[2] // 2) # dont combine shift_color_brightness and make_color_darker, they are different

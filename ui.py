@@ -4,13 +4,34 @@ import math
 import config as c
 from colors import COLORS
 from globals import window
+from utils import shift_color_brightness, make_color_darker
+from inputs import is_button_clicked, is_mouse_over_button
 
 # ui stuff
 pygame.font.init()
 ui_stroke_width = 3
 ui_offset = 10
 ui_minimap_size = 150
+
 large_font = pygame.font.Font("assets/fonts/Ubuntu-Bold.ttf", 20)
+button_font = pygame.font.Font("assets/fonts/Ubuntu-Bold.ttf", 15)
+
+def draw_button(text, pos = (0,0), dim = (0,0), color = COLORS["COL_GREY"]):
+    button_rect = pygame.Rect(pos[0], pos[1], dim[0], dim[1])
+    button_rect_shadow = pygame.Rect(pos[0], pos[1] + dim[1]*0.6, dim[0], dim[1]*0.4)
+
+    color =  make_color_darker(color) if is_button_clicked((pos,dim)) else shift_color_brightness(color,20) if is_mouse_over_button((pos, dim)) else color
+
+    transparent = pygame.Surface(c.WINDOW_DIMENSIONS, pygame.SRCALPHA)
+    
+    pygame.draw.rect(window, color, button_rect)
+    pygame.draw.rect(transparent, (*make_color_darker(color),96), button_rect_shadow)
+    pygame.draw.rect(window, COLORS["COL_BLACK"], button_rect, ui_stroke_width)
+
+    text_surface = button_font.render(text, True, COLORS["COL_WHITE"])
+    text_rect = text_surface.get_rect(center=button_rect.center)
+    window.blit(transparent,  (0,0))
+    window.blit(text_surface, text_rect.topleft)
 
 def draw_hp_bar(entity):
     render_x = (entity.x - c.CAMERA_X + (c.WINDOW_DIMENSIONS[0] * c.CAMERA_FOV) / 2) / c.CAMERA_FOV

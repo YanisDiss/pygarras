@@ -7,8 +7,8 @@ import json
 # file dependencies
 from colors import COLORS
 import config as c
-from globals import entities, window
-from ui import draw_hp_bar, draw_minimap, draw_minimap_point
+from globals import entities, window, clickables
+from ui import draw_hp_bar, draw_minimap, draw_minimap_point, draw_button, ui_offset, ui_minimap_size, ui_stroke_width
 from draw import draw_entity, draw_grid
 from utils import get_world_mouse
 from entity import Entity, Gun, player_entity_id
@@ -71,6 +71,16 @@ while True:
             draw_hp_bar(entity)
 
     #draw the actual ui
+
+    button_size = (100, 30)
+    draw_button("print(\"hi\")", (c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - button_size[1] - ui_offset), (100, 30), COLORS["COL_GREY"])
+    clickables["testButton"] = ((c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - button_size[1] - ui_offset), button_size)
+
+    draw_button("booster", (c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - 2*button_size[1] - 2*ui_offset), (100, 30), COLORS["COL_GREY"])
+    clickables["boosterButton"] = ((c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - 2*button_size[1] - 2*ui_offset), button_size)
+
+    # it is what it is
+
     draw_minimap()
     for entity in entities:
         if entity.render and entity.draw_on_minimap and entity.alive:

@@ -2,11 +2,11 @@ import pygame
 import config as c
 import random
 import sys
-from globals import entities, window
+from globals import entities, window, clickables
 from utils import get_world_mouse, is_targeted
 from definitions import DEFINITIONS
-from entity import Entity
-
+from entity import Entity, Gun, player_entity_id
+from colors import COLORS
 
 player_mouse_left = 0
 player_mouse_middle = 0
@@ -16,6 +16,19 @@ player_move_up = 0
 player_move_down = 0
 player_move_left = 0
 player_move_right = 0
+
+def is_mouse_over_button(button = (None,None)):
+    pos , dim = button
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    button_rect = pygame.Rect(pos[0], pos[1], dim[0], dim[1])
+    return button_rect.collidepoint(mouse_x, mouse_y)
+
+def is_button_clicked(button = (None,None)):
+    pos , dim = button
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    button_rect = pygame.Rect(pos[0], pos[1], dim[0], dim[1])
+    is_clicked = pygame.mouse.get_pressed()[0] == True and button_rect.collidepoint(mouse_x, mouse_y)
+    return is_clicked
 
 def update_movement_state(event, down):
     global player_move_up, player_move_down, player_move_left, player_move_right
@@ -77,4 +90,13 @@ def manage_inputs(event,input_type, down):
     
     if input_type == "mouse":
         update_mouse_state(event,down)
+
+        if is_button_clicked(clickables["testButton"]):
+            print("hi")
+
+        if is_button_clicked(clickables["boosterButton"]):
+            for entity in entities[:]:
+                if entity.alive and entity.id == player_entity_id:
+                    entity.define(DEFINITIONS["booster"])
+                    entity.color = COLORS["COL_BLUE"]
 

@@ -6,7 +6,7 @@ from colors import COLORS
 from globals import window
 import config as c
 
-from utils import make_color_lighter, make_color_darker
+from utils import shift_color_brightness, make_color_darker
 
 def draw_grid(cell_size):
 
@@ -35,7 +35,7 @@ def draw_guns(entity):
         gun_render_x = (gun.x - gun.length_recoil) / c.CAMERA_FOV
         gun_render_y = gun.y / c.CAMERA_FOV
         
-        lighter = make_color_lighter(gun.color)
+        lighter = shift_color_brightness(gun.color,65)
         color = lighter if entity.injured == 1 and entity.injured_tick == 1 else gun.color
         darker = make_color_darker(gun.color)
 
@@ -74,7 +74,7 @@ def draw_entity(entity):
     render_y = (entity.y - c.CAMERA_Y + (c.WINDOW_DIMENSIONS[1] * c.CAMERA_FOV) / 2) / c.CAMERA_FOV
     render_size = entity.size / c.CAMERA_FOV
     
-    lighter = make_color_lighter(entity.color)
+    lighter = shift_color_brightness(entity.color,65)
     color = lighter if entity.injured == 1 and entity.injured_tick == 1 else entity.color
     darker = make_color_darker(entity.color)
 
