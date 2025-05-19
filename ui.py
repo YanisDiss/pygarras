@@ -12,6 +12,7 @@ pygame.font.init()
 ui_stroke_width = 3
 ui_offset = 10
 ui_minimap_size = 150
+ui_border_radius = 2
 
 large_font = pygame.font.Font("assets/fonts/Ubuntu-Bold.ttf", 20)
 button_font = pygame.font.Font("assets/fonts/Ubuntu-Bold.ttf", 15)
@@ -19,14 +20,12 @@ button_font = pygame.font.Font("assets/fonts/Ubuntu-Bold.ttf", 15)
 def draw_button(text, pos = (0,0), dim = (0,0), color = COLORS["COL_GREY"]):
     button_rect = pygame.Rect(pos[0], pos[1], dim[0], dim[1])
     button_rect_shadow = pygame.Rect(pos[0], pos[1] + dim[1]*0.6, dim[0], dim[1]*0.4)
-
     color =  make_color_darker(color) if is_button_clicked((pos,dim)) else shift_color_brightness(color,20) if is_mouse_over_button((pos, dim)) else color
-
     transparent = pygame.Surface(c.WINDOW_DIMENSIONS, pygame.SRCALPHA)
     
-    pygame.draw.rect(window, color, button_rect)
-    pygame.draw.rect(transparent, (*make_color_darker(color),96), button_rect_shadow)
-    pygame.draw.rect(window, COLORS["COL_BLACK"], button_rect, ui_stroke_width)
+    pygame.draw.rect(window, color, button_rect,0,ui_border_radius)
+    pygame.draw.rect(transparent, (*make_color_darker(color),96), button_rect_shadow,0,0,0,0,ui_border_radius,ui_border_radius)
+    pygame.draw.rect(window, COLORS["COL_BLACK"], button_rect, ui_stroke_width,ui_border_radius)
 
     text_surface = button_font.render(text, True, COLORS["COL_WHITE"])
     text_rect = text_surface.get_rect(center=button_rect.center)
@@ -55,9 +54,9 @@ def draw_hp_bar(entity):
 
 def draw_minimap():
     transparent = pygame.Surface(c.WINDOW_DIMENSIONS, pygame.SRCALPHA)
-    pygame.draw.rect(transparent, (*COLORS["COL_BACKGROUND"], 128), ((c.WINDOW_DIMENSIONS[0]-ui_minimap_size-ui_offset, c.WINDOW_DIMENSIONS[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)))
+    pygame.draw.rect(transparent, (*COLORS["COL_BACKGROUND"], 128), ((c.WINDOW_DIMENSIONS[0]-ui_minimap_size-ui_offset, c.WINDOW_DIMENSIONS[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)),0,ui_border_radius)
     window.blit(transparent, (0, 0))
-    pygame.draw.rect(window, COLORS["COL_BLACK"], ((c.WINDOW_DIMENSIONS[0]-ui_minimap_size-ui_offset, c.WINDOW_DIMENSIONS[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)), ui_stroke_width)
+    pygame.draw.rect(window, COLORS["COL_BLACK"], ((c.WINDOW_DIMENSIONS[0]-ui_minimap_size-ui_offset, c.WINDOW_DIMENSIONS[1]-ui_minimap_size-ui_offset),(ui_minimap_size, ui_minimap_size)), ui_stroke_width,ui_border_radius)
 
     # text
     pygarras_text = large_font.render("pygarras.io", True, COLORS["COL_BLACK"])

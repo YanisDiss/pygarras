@@ -90,13 +90,14 @@ def manage_inputs(event,input_type, down):
     
     if input_type == "mouse":
         update_mouse_state(event,down)
-
-        if is_button_clicked(clickables["testButton"]):
-            print("hi")
-
+        
         if is_button_clicked(clickables["boosterButton"]):
             for entity in entities[:]:
                 if entity.alive and entity.id == player_entity_id:
                     entity.define(DEFINITIONS["booster"])
-                    entity.color = COLORS["COL_BLUE"]
+                    #entity.color = COLORS["COL_BLUE"]
+        if is_button_clicked(clickables["acButton"]):
+            for entity in entities[:]:
+                if entity.alive and entity.id == player_entity_id:
+                    entity.define(DEFINITIONS["arena_closer"])
 

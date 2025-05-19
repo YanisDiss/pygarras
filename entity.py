@@ -148,6 +148,9 @@ class Entity:
         self.type = definition["type"]
         self.render_health = definition["render_health"]
         self.lifetime = definition["lifetime"]
+
+        self.color = COLORS[definition["color"]]
+        self.size = definition["size"]
         
         self.max_health = definition["body"]["health"]
         self.health = definition["body"]["health"]

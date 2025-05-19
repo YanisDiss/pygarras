@@ -73,11 +73,12 @@ while True:
     #draw the actual ui
 
     button_size = (100, 30)
-    draw_button("print(\"hi\")", (c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - button_size[1] - ui_offset), (100, 30), COLORS["COL_GREY"])
-    clickables["testButton"] = ((c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - button_size[1] - ui_offset), button_size)
 
     draw_button("booster", (c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - 2*button_size[1] - 2*ui_offset), (100, 30), COLORS["COL_GREY"])
     clickables["boosterButton"] = ((c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - 2*button_size[1] - 2*ui_offset), button_size)
+
+    draw_button("AC", (c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - button_size[1] - ui_offset), (100, 30), COLORS["COL_GREY"])
+    clickables["acButton"] = ((c.WINDOW_DIMENSIONS[0] - button_size[0] - 2*ui_offset - ui_minimap_size , c.WINDOW_DIMENSIONS[1] - button_size[1] - ui_offset), button_size)
 
     # it is what it is
 
