@@ -5,8 +5,8 @@ import math
 def get_world_mouse():
     player_mouse = pygame.mouse.get_pos()
     
-    x = (player_mouse[0] + c.CAMERA_X - c.WINDOW_DIMENSIONS[0] / 2)
-    y = (player_mouse[1] + c.CAMERA_Y - c.WINDOW_DIMENSIONS[1] / 2)
+    x = (player_mouse[0] - c.WINDOW_DIMENSIONS[0] / 2) * c.CAMERA_FOV + c.CAMERA_X
+    y = (player_mouse[1] - c.WINDOW_DIMENSIONS[1] / 2) * c.CAMERA_FOV + c.CAMERA_Y
     
     return (x, y)
 
