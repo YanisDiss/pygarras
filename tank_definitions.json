@@ -411,7 +411,7 @@
                     "fire_rate": 10,
                     "delay": 0,
                     "recoil": 0,
-                    "bullet_speed": 1,
+                    "bullet_speed": 3,
                     "bullet_damage": 100,
                     "spread": 0.01,
                     "shudder": 0,

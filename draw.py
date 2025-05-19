@@ -9,7 +9,19 @@ import config as c
 from utils import make_color_lighter, make_color_darker
 
 def draw_grid(cell_size):
-    ... # genuienly cannot come up with a way to draw the grid correctly when the fov is different than 1
+
+    x = (c.WINDOW_DIMENSIONS[0] / 2 - c.CAMERA_X / c.CAMERA_FOV) % cell_size
+    y = (c.WINDOW_DIMENSIONS[1] / 2 - c.CAMERA_Y / c.CAMERA_FOV) % cell_size
+    line_width = max(int(2 / c.CAMERA_FOV), 1)
+    
+    if c.CAMERA_FOV < c.FOV_GRID_LIMIT:
+        while x < c.WINDOW_DIMENSIONS[0]:
+            pygame.draw.line(window, COLORS["COL_GRID"], (x, 0), (x, c.WINDOW_DIMENSIONS[1]), line_width)
+            x += cell_size
+
+        while y < c.WINDOW_DIMENSIONS[1]:
+            pygame.draw.line(window, COLORS["COL_GRID"], (0, y), (c.WINDOW_DIMENSIONS[0], y), line_width)
+            y += cell_size
 
 def draw_guns(entity):
     render_stroke_width = int(c.STROKE_WIDTH / c.CAMERA_FOV)

@@ -53,11 +53,11 @@ while True:
     window.fill(COLORS["COL_OUTER_BACKGROUND"])
     pygame.draw.rect(window, COLORS["COL_BACKGROUND"], pygame.Rect(-(c.CAMERA_X / c.CAMERA_FOV) + c.WINDOW_DIMENSIONS[0] / 2, -(c.CAMERA_Y / c.CAMERA_FOV) + c.WINDOW_DIMENSIONS[1] / 2, c.ARENA_DIMENSIONS[0] / c.CAMERA_FOV, c.ARENA_DIMENSIONS[1] / c.CAMERA_FOV))
     
-    draw_grid(int(20 / c.CAMERA_FOV))
+    draw_grid(20 / c.CAMERA_FOV)
     time = pygame.time.Clock()
     delta = time.tick(c.FRAMES_PER_SECOND)
     
-    c.CAMERA_FOV += (c.CAMERA_FOV_TARGET - c.CAMERA_FOV) / 10
+    c.CAMERA_FOV += (c.CAMERA_FOV_TARGET - c.CAMERA_FOV) / 100 * delta
     
     # do a physics step and draw all entities
     for entity in entities:
@@ -73,7 +73,7 @@ while True:
     #draw the actual ui
     draw_minimap()
     for entity in entities:
-        if entity.render and entity.draw_on_minimap:
+        if entity.render and entity.draw_on_minimap and entity.alive:
             if player_entity_id == entity.id:
                 draw_minimap_point(entity, COLORS["COL_BLACK"])
             else: draw_minimap_point(entity)

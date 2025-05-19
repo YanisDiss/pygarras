@@ -1,9 +1,11 @@
 import pygame
 import config as c
+import random
 import sys
 from globals import entities, window
 from utils import get_world_mouse, is_targeted
 from definitions import DEFINITIONS
+from entity import Entity
 
 
 player_mouse_left = 0
@@ -52,13 +54,16 @@ def manage_inputs(event,input_type, down):
                     entity.define(DEFINITIONS["octo_tank"])
                     
         if event.key == pygame.K_e:
-            c.CAMERA_FOV_TARGET += 0.1
+            if c.CAMERA_FOV_TARGET < 10:
+                c.CAMERA_FOV_TARGET += 0.1
                     
         if event.key == pygame.K_q:
-            c.CAMERA_FOV_TARGET -= 0.1
+            if c.CAMERA_FOV_TARGET > 0.3:
+                c.CAMERA_FOV_TARGET -= 0.1
                     
         if event.key == pygame.K_f:
-           food = Entity(DEFINITIONS["pentagon"], get_world_mouse()[0], get_world_mouse()[1])
+           foods = random.choice(["egg", "square", "triangle", "pentagon"])
+           food = Entity(DEFINITIONS[foods], get_world_mouse()[0], get_world_mouse()[1])
 
         if event.key == pygame.K_h:
             for entity in entities[:]:

@@ -1,9 +1,9 @@
 COLORS = {
     "COL_BLACK": (0, 0, 0),
     "COL_GREY": (128, 128, 128),
-    "COL_OUTER_BACKGROUND": (180, 180, 180),
+    "COL_OUTER_BACKGROUND": (190, 190, 190),
     "COL_BACKGROUND": (200, 200, 200),
-    "COL_GRID": (170, 170, 170),
+    "COL_GRID": (180, 180, 180),
     "COL_WHITE": (255, 255, 255),
     "COL_RED": (255, 48, 48),
     "COL_GREEN": (87, 255, 87),

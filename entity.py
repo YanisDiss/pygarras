@@ -54,7 +54,7 @@ class Gun:
             
             if self.tick >= self.fire_rate:
                 self.tick = 0
-                self.length_recoil = self.length / 2 * self.master.size/40
+                self.length_recoil = self.length / 2 * self.master.size/80
 
                 spawn_x = self.master.x + math.cos(self.master.angle + self.angle) * ((self.length * 2 + self.x) * self.master.size/20)
                 spawn_y = self.master.y + math.sin(self.master.angle + self.angle) * ((self.length * 2 + self.x) * self.master.size/20)
@@ -287,11 +287,12 @@ class Entity:
                 self.kill()
             
         else:
-            self.size -= self.size / 100 * delta_t
-            #self.x += self.vx * delta_t
-            #self.y += self.vy * delta_t
-            #self.vx += self.ax * delta_t
-            #self.vy += self.ay * delta_t
+            oldsize = self.size
+            self.size -= oldsize / 50 * delta_t
+            self.x += self.vx * delta_t
+            self.y += self.vy * delta_t
+            self.vx += self.ax * delta_t
+            self.vy += self.ay * delta_t
             
             if self.size <= 2:
                 self.render = 0
